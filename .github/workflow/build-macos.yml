@@ -28,7 +28,7 @@ jobs:
           pyinstaller main.py \
             --name "PhieuXuatApp" \
             --windowed \
-            --icon=unnamed.ico \
+            --icon=unnamed.icns \
             --add-data "PHIEU_TEMPLATE.docx:."
 
       - name: List dist output
