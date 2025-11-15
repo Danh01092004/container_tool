@@ -1,41 +1,68 @@
-name: Build macOS App (.app)
+# -*- mode: python ; coding: utf-8 -*-
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+block_cipher = None
 
-jobs:
-  build-macos:
-    runs-on: macos-latest
+a = Analysis(
+    ['main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[('PHIEU_TEMPLATE.docx', '.'), ('unnamed.icns', '.')],
+    hiddenimports=['docx', 'openpyxl', 'PIL'],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
 
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+exe = EXE(
+    pyz,
+    a.scripts,
+    [],
+    exclude_binaries=True,
+    name='PhieuXuatApp',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon='unnamed.icns',
+)
 
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install pyinstaller python-docx openpyxl
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='PhieuXuatApp',
+)
 
-      - name: Build macOS .app
-        run: |
-          pyinstaller main.py \
-            --name "PhieuXuatApp" \
-            --windowed \
-            --icon=unnamed.icns \
-            --add-data "PHIEU_TEMPLATE.docx:."
-
-      - name: List dist output
-        run: ls -R dist
-
-      - name: Upload macOS .app
-        uses: actions/upload-artifact@v4
-        with:
-          name: macOS-app
-          path: dist/PhieuXuatApp.app
+app = BUNDLE(
+    coll,
+    name='PhieuXuatApp.app',
+    icon='unnamed.icns',
+    bundle_identifier='com.danh.phieuxuat',
+    info_plist={
+        'NSHighResolutionCapable': 'True',
+        'LSBackgroundOnly': 'False',
+        'CFBundleName': 'PhieuXuatApp',
+        'CFBundleDisplayName': 'Phiếu Xuất App',
+        'CFBundleGetInfoString': 'Phiếu Xuất Container Tool',
+        'CFBundleVersion': '1.0.0',
+        'CFBundleShortVersionString': '1.0.0',
+        'NSPrincipalClass': 'NSApplication',
+    },
+)
