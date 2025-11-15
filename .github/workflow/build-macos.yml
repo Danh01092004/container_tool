@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install pyinstaller python-docx
+          pip install pyinstaller python-docx openpyxl
 
       - name: Build macOS .app
         run: |

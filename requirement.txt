@@ -1,1 +1,3 @@
 pyinstaller==6.3.0
+python-docx
+openpyxl
