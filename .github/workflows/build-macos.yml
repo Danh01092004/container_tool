@@ -1,68 +1,53 @@
-# -*- mode: python ; coding: utf-8 -*-
+name: Build macOS App (.app)
 
-block_cipher = None
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
-a = Analysis(
-    ['main.py'],
-    pathex=[],
-    binaries=[],
-    datas=[('PHIEU_TEMPLATE.docx', '.'), ('unnamed.icns', '.')],
-    hiddenimports=['docx', 'openpyxl', 'PIL'],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
-)
+jobs:
+  build-macos:
+    runs-on: macos-latest
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
-    exclude_binaries=True,
-    name='PhieuXuatApp',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon='unnamed.icns',
-)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='PhieuXuatApp',
-)
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pyinstaller python-docx openpyxl pillow
 
-app = BUNDLE(
-    coll,
-    name='PhieuXuatApp.app',
-    icon='unnamed.icns',
-    bundle_identifier='com.danh.phieuxuat',
-    info_plist={
-        'NSHighResolutionCapable': 'True',
-        'LSBackgroundOnly': 'False',
-        'CFBundleName': 'PhieuXuatApp',
-        'CFBundleDisplayName': 'Phiếu Xuất App',
-        'CFBundleGetInfoString': 'Phiếu Xuất Container Tool',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
-        'NSPrincipalClass': 'NSApplication',
-    },
-)
+      - name: Build macOS .app
+        run: |
+          pyinstaller --onefile --windowed --name="PhieuXuatApp" --icon=unnamed.icns --add-data="PHIEU_TEMPLATE.docx:." main.py
+
+      - name: Fix permissions
+        run: |
+          chmod -R 755 dist/PhieuXuatApp.app
+
+      - name: List dist output
+        run: ls -R dist
+
+      - name: Create DMG
+        run: |
+          mkdir -p dist/dmg
+          cp -r dist/PhieuXuatApp.app dist/dmg/
+          hdiutil create -volname "PhieuXuatApp" -srcfolder dist/dmg -ov -format UDZO dist/PhieuXuatApp.dmg
+
+      - name: Upload macOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhieuXuatApp-macOS
+          path: dist/PhieuXuatApp.app
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhieuXuatApp-DMG
+          path: dist/PhieuXuatApp.dmg
