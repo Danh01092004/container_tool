@@ -34,20 +34,8 @@ jobs:
       - name: List dist output
         run: ls -R dist
 
-      - name: Create DMG
-        run: |
-          mkdir -p dist/dmg
-          cp -r dist/PhieuXuatApp.app dist/dmg/
-          hdiutil create -volname "PhieuXuatApp" -srcfolder dist/dmg -ov -format UDZO dist/PhieuXuatApp.dmg
-
       - name: Upload macOS App
         uses: actions/upload-artifact@v4
         with:
           name: PhieuXuatApp-macOS
           path: dist/PhieuXuatApp.app
-
-      - name: Upload DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: PhieuXuatApp-DMG
-          path: dist/PhieuXuatApp.dmg
